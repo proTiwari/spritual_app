@@ -1,11 +1,15 @@
+import 'dart:math';
+
+import 'package:calendar_view/calendar_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_dynamic_theme/easy_dynamic_theme.dart';
 import 'package:flutter/material.dart';
-
+import '../model/event.dart' as evento;
+import '../main.dart';
 import '../utils/calendar_utils.dart';
 import '../widgets/responsive.dart';
 import '../widgets/web_scrollbar.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 
 class EventsPage extends StatefulWidget {
   const EventsPage({Key? key}) : super(key: key);
@@ -28,7 +32,6 @@ class _EventsPageState extends State<EventsPage> {
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-
   late ScrollController _scrollController;
 
   _scrollListener() {
@@ -43,9 +46,42 @@ class _EventsPageState extends State<EventsPage> {
     _scrollController.addListener(_scrollListener);
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
-
+    getEvents();
     super.initState();
   }
+
+  getEvents() async {
+    await FirebaseFirestore.instance.collection('events').get().then((value) {
+      value.docs.forEach((element) {
+        print('here we are iefjowe');
+        print(element.data());
+        var r = int.parse(element['color'].toString().split(",")[0]);
+        var g = int.parse(element['color'].toString().split(",")[1]);
+        var b = int.parse(element['color'].toString().split(",")[2]);
+        try {
+          var event = CalendarEventData(
+            date: element['date'].toDate(),
+            color: Color.fromRGBO(r, g, b, 1.0),
+            endTime: element['endTime'].toDate(),
+            startTime: element['startTime'].toDate(),
+            description: element['description'],
+            endDate: element['endDate'].toDate(),
+            title: element['title'],
+            event: evento.Event(
+              title: '${element['title']}}',
+            ),
+          );
+          setState(() {
+            eventController.add(event);
+          });
+        } catch (e) {
+          print("this is error ${e.toString()}");
+        }
+      });
+    });
+  }
+
+  final _breakPoint = 490.0;
 
   @override
   Widget build(BuildContext context) {
@@ -53,155 +89,82 @@ class _EventsPageState extends State<EventsPage> {
     _opacity = _scrollPosition < screenSize.height * 0.40
         ? _scrollPosition / (screenSize.height * 0.40)
         : 1;
+    final availableWidth = MediaQuery.of(context).size.width;
+    final width = min(_breakPoint, availableWidth);
 
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).backgroundColor,
-      extendBodyBehindAppBar: true,
-      appBar: ResponsiveWidget.isSmallScreen(context)
-          ? AppBar(
-        backgroundColor:
-        Theme.of(context).bottomAppBarColor.withOpacity(_opacity),
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          Visibility(
-            visible: false,
-            child: IconButton(
-              icon: Icon(Icons.brightness_6),
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              onPressed: () {
-                EasyDynamicTheme.of(context).changeTheme();
-              },
-            ),
-          ),
-        ],
-        title:  Image.asset('assets/images/logo-side-crop.png',
-            width: screenSize.width / 6,
-            height: screenSize.width / 12
-        ),
-      )
-          : PreferredSize(
-        preferredSize: Size(screenSize.width, 1000),
-        child: PreferredSize(
-          preferredSize: Size(screenSize.width, 1000),
-          child: Container(
-            color: Theme.of(context).bottomAppBarColor.withOpacity(_opacity),
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  /* Text(
-                'EXPLORE',
-                style: TextStyle(
-                  color: Colors.blueGrey[100],
-                  fontSize: 20,
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 3,
-                ),
-              ),*/
-                  Image.asset('assets/images/logo-side-crop.png',
-                      width: screenSize.width / 6,
-                      height: screenSize.width / 12
-                  ),
-                  SizedBox(
-                    width: screenSize.width / 50,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: WebScrollbar(
-        color: Colors.blueGrey,
-        backgroundColor: Colors.blueGrey.withOpacity(0.3),
-        width: 10,
-        heightFraction: 0.3,
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          child: Stack(
-            children: [
-              SizedBox(
-                height: screenSize.height,
-                width: screenSize.width,
-                child
-                    : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: screenSize.height * 0.10,
-                      width: screenSize.width,
-                      //color: Color(0xfffcb900),
-                      color: Colors.deepOrangeAccent,
-                    ),
-                    SizedBox(height: screenSize.width / 50),
-                    TableCalendar<Event>(
-                      firstDay: kFirstDay,
-                      lastDay: kLastDay,
-                      focusedDay: _focusedDay,
-                      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                      rangeStartDay: _rangeStart,
-                      rangeEndDay: _rangeEnd,
-                      calendarFormat: _calendarFormat,
-                      rangeSelectionMode: _rangeSelectionMode,
-                      eventLoader: _getEventsForDay,
-                      startingDayOfWeek: StartingDayOfWeek.monday,
-                      calendarStyle: CalendarStyle(
-                        // Use `CalendarStyle` to customize the UI
-                        outsideDaysVisible: false,
-                      ),
-                      onDaySelected: _onDaySelected,
-                      onRangeSelected: _onRangeSelected,
-                      onFormatChanged: (format) {
-                        if (_calendarFormat != format) {
-                          setState(() {
-                            _calendarFormat = format;
-                          });
-                        }
-                      },
-                      onPageChanged: (focusedDay) {
-                        _focusedDay = focusedDay;
-                      },
-                    ),
-                    const SizedBox(height: 8.0),
-                    Expanded(
-                      child: ValueListenableBuilder<List<Event>>(
-                        valueListenable: _selectedEvents,
-                        builder: (context, value, _) {
-                          return ListView.builder(
-                            itemCount: value.length,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 12.0,
-                                  vertical: 4.0,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(),
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                child: ListTile(
-                                  onTap: () => print('${value[index]}'),
-                                  title: Text('${value[index]}'),
-                                ),
-                              );
-                            },
-                          );
+    return CalendarControllerProvider(
+      controller: eventController,
+      child: Scaffold(
+          backgroundColor: Theme.of(context).backgroundColor,
+          extendBodyBehindAppBar: true,
+          appBar: ResponsiveWidget.isSmallScreen(context)
+              ? AppBar(
+                  backgroundColor:
+                      Theme.of(context).bottomAppBarColor.withOpacity(_opacity),
+                  elevation: 0,
+                  centerTitle: true,
+                  actions: [
+                    Visibility(
+                      visible: false,
+                      child: IconButton(
+                        icon: Icon(Icons.brightness_6),
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onPressed: () {
+                          EasyDynamicTheme.of(context).changeTheme();
                         },
                       ),
                     ),
                   ],
+                  title: Image.asset('assets/images/logo-side-crop.png',
+                      width: screenSize.width / 6,
+                      height: screenSize.width / 12),
+                )
+              : PreferredSize(
+                  preferredSize: Size(screenSize.width, 1000),
+                  child: PreferredSize(
+                    preferredSize: Size(screenSize.width, 1000),
+                    child: Container(
+                      color: Theme.of(context)
+                          .bottomAppBarColor
+                          .withOpacity(_opacity),
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            /* Text(
+                  'EXPLORE',
+                  style: TextStyle(
+                    color: Colors.blueGrey[100],
+                    fontSize: 20,
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 3,
+                  ),
+                ),*/
+                            Image.asset('assets/images/logo-side-crop.png',
+                                width: screenSize.width / 6,
+                                height: screenSize.width / 12),
+                            SizedBox(
+                              width: screenSize.width / 50,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              )
-            ],
-          ),
-        ),
-      ),
+          body: Center(
+            child: SizedBox(
+                // height: screenSize.height * 0.9,
+                // width: MediaQuery.of(context).size.width * 0.7,
+                child: Center(
+                    child: MonthView(
+              controller: eventController,
+              width: width,
+            ))),
+          )),
     );
   }
 
@@ -251,5 +214,4 @@ class _EventsPageState extends State<EventsPage> {
       _selectedEvents.value = _getEventsForDay(end);
     }
   }
-
 }

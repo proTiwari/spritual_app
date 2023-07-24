@@ -89,7 +89,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
               labelText: "Event Title",
             ),
             style: TextStyle(
-              color: AppColors.black,
+              color: const Color.fromARGB(255, 211, 211, 211),
               fontSize: 17.0,
             ),
             onSaved: (value) => _title = value?.trim() ?? "",
@@ -120,7 +120,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
                     return null;
                   },
                   textStyle: TextStyle(
-                    color: AppColors.black,
+                    color: const Color.fromARGB(255, 211, 211, 211),
                     fontSize: 17.0,
                   ),
                   onSave: (date) => _startDate = date,
@@ -141,7 +141,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
                     return null;
                   },
                   textStyle: TextStyle(
-                    color: AppColors.black,
+                    color: const Color.fromARGB(255, 211, 211, 211),
                     fontSize: 17.0,
                   ),
                   onSave: (date) => _endDate = date,
@@ -169,7 +169,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
                   },
                   onSave: (date) => _startTime = date,
                   textStyle: TextStyle(
-                    color: AppColors.black,
+                    color: const Color.fromARGB(255, 211, 211, 211),
                     fontSize: 17.0,
                   ),
                   type: DateTimeSelectionType.time,
@@ -190,7 +190,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
                   },
                   onSave: (date) => _endTime = date,
                   textStyle: TextStyle(
-                    color: AppColors.black,
+                    color: const Color.fromARGB(255, 211, 211, 211),
                     fontSize: 17.0,
                   ),
                   type: DateTimeSelectionType.time,
@@ -204,7 +204,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
           TextFormField(
             focusNode: _descriptionNode,
             style: TextStyle(
-              color: AppColors.black,
+              color: const Color.fromARGB(255, 211, 211, 211),
               fontSize: 17.0,
             ),
             keyboardType: TextInputType.multiline,
@@ -232,7 +232,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
               Text(
                 "Event Color: ",
                 style: TextStyle(
-                  color: AppColors.black,
+                  color: const Color.fromARGB(255, 211, 211, 211),
                   fontSize: 17,
                 ),
               ),
@@ -324,7 +324,7 @@ class _AddEventWidgetState extends State<AddEventWidget> {
           Text(
             "Event Color",
             style: TextStyle(
-              color: AppColors.black,
+              color: const Color.fromARGB(255, 211, 211, 211),
               fontSize: 25.0,
             ),
           ),

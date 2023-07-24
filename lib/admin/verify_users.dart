@@ -25,7 +25,7 @@ class UsersList extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: _firestore
           .collection('users')
-          .orderBy('registrationDate')
+          .orderBy('registrationDate', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
